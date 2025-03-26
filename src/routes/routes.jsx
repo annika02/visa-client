@@ -7,15 +7,26 @@ import ErrorPage from "../pages/ErrorPage";
 import AllVisas from "../pages/AllVisas";
 import VisaDetails from "../pages/VisaDetails";
 import MyApplications from "../pages/MyApplications";
+import AddVisa from "../pages/AddVisa";
+import Home from "../pages/Home";
+import MyVisas from "../pages/MyVisas";
 export const router = createBrowserRouter([
   {
     path: "/",
     element: <App></App>,
-    errorElement: <ErrorPage />, // Add error page here
+    errorElement: <ErrorPage />,
     children: [
       {
         path: "login",
         element: <Login></Login>,
+      },
+      {
+        path: "/",
+        element: <Home></Home>,
+      },
+      {
+        path: "/my-visas",
+        element: <MyVisas></MyVisas>,
       },
       {
         path: "register",
@@ -24,6 +35,10 @@ export const router = createBrowserRouter([
       {
         path: "/all-visas",
         element: <AllVisas></AllVisas>,
+      },
+      {
+        path: "/add-visa",
+        element: <AddVisa></AddVisa>,
       },
       {
         path: "/visa/:id",
