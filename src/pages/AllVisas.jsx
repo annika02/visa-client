@@ -13,7 +13,9 @@ const AllVisas = () => {
   useEffect(() => {
     const fetchVisas = async () => {
       try {
-        const response = await fetch("http://localhost:3000/all-visas");
+        const response = await fetch(
+          "https://visa-navigator-server-sepia.vercel.app/all-visas"
+        );
         if (!response.ok) throw new Error("Failed to fetch visas");
         const data = await response.json();
         setVisas(data);

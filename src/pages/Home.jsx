@@ -8,7 +8,7 @@ const Home = () => {
   const [latestVisas, setLatestVisas] = useState([]);
 
   useEffect(() => {
-    fetch("http://localhost:3000/latest-visas")
+    fetch("https://visa-navigator-server-sepia.vercel.app/latest-visas")
       .then((res) => res.json())
       .then((data) => setLatestVisas(data))
       .catch((error) => console.error("Error fetching visas:", error));

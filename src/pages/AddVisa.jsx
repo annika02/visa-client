@@ -46,7 +46,7 @@ const AddVisa = () => {
 
     const newVisa = { ...formData, createdBy: user.email };
 
-    fetch("http://localhost:3000/add-visa", {
+    fetch("https://visa-navigator-server-sepia.vercel.app/add-visa", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(newVisa),

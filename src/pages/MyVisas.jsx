@@ -21,7 +21,9 @@ const MyVisas = () => {
   // Fetch user's visas from the backend
   useEffect(() => {
     if (user) {
-      fetch(`http://localhost:3000/my-visas/${user.email}`)
+      fetch(
+        `https://visa-navigator-server-sepia.vercel.app/my-visas/${user.email}`
+      )
         .then((res) => res.json())
         .then((data) => {
           setVisas(data);
@@ -40,9 +42,12 @@ const MyVisas = () => {
     if (!window.confirm("Are you sure you want to delete this visa?")) return;
 
     try {
-      const res = await fetch(`http://localhost:3000/visa/${id}`, {
-        method: "DELETE",
-      });
+      const res = await fetch(
+        `https://visa-navigator-server-sepia.vercel.app/visa/${id}`,
+        {
+          method: "DELETE",
+        }
+      );
       if (!res.ok) throw new Error("Failed to delete visa");
       toast.success("Visa deleted successfully!");
       setVisas(visas.filter((visa) => visa._id !== id));
@@ -65,11 +70,14 @@ const MyVisas = () => {
   // Handle updating visa
   const handleUpdate = async () => {
     try {
-      const res = await fetch(`http://localhost:3000/visa/${editingVisa}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
+      const res = await fetch(
+        `https://visa-navigator-server-sepia.vercel.app/visa/${editingVisa}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        }
+      );
       if (!res.ok) throw new Error("Failed to update visa");
 
       toast.success("Visa updated successfully!");

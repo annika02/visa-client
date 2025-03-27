@@ -24,7 +24,9 @@ const VisaDetails = () => {
   useEffect(() => {
     const fetchVisa = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/visa/${id}`);
+        const response = await fetch(
+          `https://visa-navigator-server-sepia.vercel.app/visa/${id}`
+        );
         console.log("Response:", response);
         if (!response.ok) throw new Error("Failed to load visa details");
         const data = await response.json();
@@ -61,7 +63,7 @@ const VisaDetails = () => {
       status: "Pending",
     };
 
-    fetch("http://localhost:3000/apply", {
+    fetch("https://visa-navigator-server-sepia.vercel.app/apply", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(applicationData),
