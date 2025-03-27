@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import LoadingSpinner from "../components/LoadingSpinner";
-
+import { toast } from "react-toastify";
 import { Fade } from "react-awesome-reveal";
 
 const MyApplications = () => {
@@ -25,6 +25,18 @@ const MyApplications = () => {
         });
     }
   }, [user]);
+  const handleCancel = (id) => {
+    fetch(`http://localhost:3000/application/${id}`, {
+      method: "DELETE",
+    })
+      .then((res) => res.json())
+      .then(() => {
+        toast.success("Application cancelled!");
+        // Instantly update the UI by filtering out the canceled application
+        setApplications((prev) => prev.filter((app) => app._id !== id));
+      })
+      .catch(() => toast.error("Error cancelling application"));
+  };
 
   // Search Filter
   const filteredApplications = applications.filter((app) =>
@@ -76,7 +88,10 @@ const MyApplications = () => {
                   <strong>Applied Date:</strong>{" "}
                   {new Date(app?.appliedAt).toLocaleDateString() || "N/A"}
                 </p>
-                <button className="mt-2 bg-red-500 text-white px-4 py-2 rounded">
+                <button
+                  onClick={() => handleCancel(app._id)}
+                  className="mt-2 bg-red-500 text-white px-4 py-2 rounded"
+                >
                   Cancel
                 </button>
               </li>
