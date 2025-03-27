@@ -5,124 +5,124 @@ import { useState, useEffect } from "react";
 
 const VisaDetails = () => {
   const { id } = useParams();
+  // console.log("Visa ID:", id);
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [visa, setVisa] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [visa, setVisa] = useState(null);
   const [showApplyModal, setShowApplyModal] = useState(false);
 
-  // Fetch Visa Data
+  // Redirect if user is not logged in
+  useEffect(() => {
+    if (!user) {
+      toast.warning("You must be logged in to view visa details.");
+      navigate("/login");
+    }
+  }, [user, navigate]);
+
+  // Fetch visa details
   useEffect(() => {
     const fetchVisa = async () => {
       try {
         const response = await fetch(`http://localhost:3000/visa/${id}`);
+        console.log("Response:", response);
         if (!response.ok) throw new Error("Failed to load visa details");
         const data = await response.json();
+        console.log("Data:", data);
         setVisa(data);
       } catch (error) {
-        toast.error(error.message);
-        navigate("/all-visas");
+        console.error(error);
+        toast.error("Error fetching visa details");
       } finally {
         setLoading(false);
       }
     };
     fetchVisa();
-  }, [id, navigate]);
-
-  // Redirect if user is not logged in
-  useEffect(() => {
-    if (!user) {
-      toast.warning("Please log in to view visa details.");
-      navigate("/login");
-    }
-  }, [user, navigate]);
+  }, [id]);
 
   if (loading) {
-    return <p className="text-center text-blue-500">Loading visa details...</p>;
+    return <p className="text-center text-red-500">Loading visa details...</p>;
   }
 
   if (!visa) {
     return <p className="text-center text-red-500">Visa details not found.</p>;
   }
 
-  // Handle Visa Application
-  const handleApply = async (e) => {
+  const handleApply = (e) => {
     e.preventDefault();
     const applicationData = {
       email: user.email,
       firstName: e.target.firstName.value,
       lastName: e.target.lastName.value,
-      appliedAt: new Date().toISOString(),
+      appliedAt: new Date(),
+      countryName: visa.countryName,
+      visaType: visa.visaType,
       visaFee: visa.fee,
       status: "Pending",
     };
 
-    try {
-      const response = await fetch("http://localhost:3000/apply", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(applicationData),
-      });
-
-      if (!response.ok) throw new Error("Error submitting application");
-      toast.success("Visa application submitted successfully!");
-      setShowApplyModal(false);
-    } catch (error) {
-      toast.error(error.message);
-    }
+    fetch("http://localhost:3000/apply", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(applicationData),
+    })
+      .then((res) => res.json())
+      .then(() => {
+        toast.success("Visa application submitted!");
+        setShowApplyModal(false);
+      })
+      .catch(() => toast.error("Error submitting application"));
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-6 bg-white shadow-lg rounded-lg">
-      <img
-        src={visa.countryImage}
-        alt={visa.countryName}
-        className="w-full h-64 object-cover rounded-lg mb-6"
-      />
-
-      <h2 className="text-4xl font-bold text-gray-800 mb-4">
-        {visa.countryName}
-      </h2>
-      <p className="text-lg mb-2">
+    <div className="max-w-2xl mx-auto border p-6 shadow-lg rounded-lg">
+      {/* Visa Details */}
+      {visa.countryImage && (
+        <img
+          src={visa.countryImage}
+          alt={visa.countryName}
+          className="w-full h-60 object-cover rounded-lg"
+        />
+      )}
+      <h2 className="text-3xl font-bold my-4">{visa.countryName}</h2>
+      <p>
         <strong>Visa Type:</strong> {visa.visaType}
       </p>
-      <p className="text-lg mb-2">
+      <p>
         <strong>Processing Time:</strong> {visa.processingTime}
       </p>
-      <p className="text-lg mb-2">
+      <p>
         <strong>Fee:</strong> ${visa.fee}
       </p>
-      <p className="text-lg mb-2">
-        <strong>Age Restriction:</strong> {visa.ageRestriction}+
-      </p>
-      <p className="text-lg mb-2">
+      <p>
         <strong>Validity:</strong> {visa.validity}
       </p>
-      <p className="text-lg mb-4">
-        <strong>Application Method:</strong> {visa.applicationMethod}
+      <p>
+        <strong>Description:</strong> {visa.description}
       </p>
-      <p className="text-gray-700 mb-6">{visa.description}</p>
 
+      {/* Apply for Visa Button */}
       <button
         onClick={() => setShowApplyModal(true)}
-        className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition"
+        className="mt-4 bg-green-500 text-white px-4 py-2 rounded"
       >
         Apply for Visa
       </button>
 
+      {/* Apply Modal */}
       {showApplyModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-lg">
-            <h3 className="text-2xl font-bold mb-4 text-center">
-              Apply for {visa.countryName} Visa
-            </h3>
+        <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded-lg shadow-md max-w-lg">
+            <h2 className="text-2xl font-bold text-center mb-4">
+              Apply for Visa
+            </h2>
             <form onSubmit={handleApply} className="space-y-4">
               <input
                 type="email"
                 name="email"
                 value={user.email}
                 readOnly
-                className="w-full border p-2 rounded bg-gray-100"
+                className="w-full border p-2 rounded"
               />
               <input
                 type="text"
@@ -140,21 +140,27 @@ const VisaDetails = () => {
               />
               <input
                 type="text"
+                value={new Date().toLocaleDateString()}
+                readOnly
+                className="w-full border p-2 rounded"
+              />
+              <input
+                type="text"
                 value={`$${visa.fee}`}
                 readOnly
-                className="w-full border p-2 rounded bg-gray-100"
+                className="w-full border p-2 rounded"
               />
-              <div className="flex justify-between mt-6">
+              <div className="flex justify-between">
                 <button
                   type="submit"
-                  className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+                  className="bg-blue-500 text-white px-4 py-2 rounded"
                 >
-                  Submit Application
+                  Apply
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowApplyModal(false)}
-                  className="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition"
+                  className="bg-gray-500 text-white px-4 py-2 rounded"
                 >
                   Cancel
                 </button>

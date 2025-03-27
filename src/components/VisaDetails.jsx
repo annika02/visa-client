@@ -5,50 +5,48 @@ import { useState, useEffect } from "react";
 
 const VisaDetails = () => {
   const { id } = useParams();
-  // console.log("Visa ID:", id);
   const navigate = useNavigate();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [visa, setVisa] = useState(null);
   const [showApplyModal, setShowApplyModal] = useState(false);
 
-  // Redirect if user is not logged in
+  // Base URL for API (use environment variable in production)
+  const API_BASE_URL =
+    process.env.REACT_APP_API_URL || "https://visa-nav-server.vercel.app";
+
   useEffect(() => {
     if (!user) {
       toast.warning("You must be logged in to view visa details.");
       navigate("/login");
+      return;
     }
-  }, [user, navigate]);
 
-  // Fetch visa details
-  useEffect(() => {
     const fetchVisa = async () => {
       try {
-        const response = await fetch(`http://localhost:3000/visa/${id}`);
-        console.log("Response:", response);
-        if (!response.ok) throw new Error("Failed to load visa details");
+        const response = await fetch(`${API_BASE_URL}/visa/${id}`);
+        if (!response.ok) {
+          throw new Error(
+            `Failed to load visa details: ${response.statusText}`
+          );
+        }
+
         const data = await response.json();
-        console.log("Data:", data);
+        if (!data) throw new Error("Invalid visa data received");
+
         setVisa(data);
       } catch (error) {
-        console.error(error);
-        toast.error("Error fetching visa details");
+        console.error("Fetch Visa Error:", error);
+        toast.error(`Error fetching visa details: ${error.message}`);
       } finally {
         setLoading(false);
       }
     };
+
     fetchVisa();
-  }, [id]);
+  }, [id, user, navigate]);
 
-  if (loading) {
-    return <p className="text-center text-red-500">Loading visa details...</p>;
-  }
-
-  if (!visa) {
-    return <p className="text-center text-red-500">Visa details not found.</p>;
-  }
-
-  const handleApply = (e) => {
+  const handleApply = async (e) => {
     e.preventDefault();
     const applicationData = {
       email: user.email,
@@ -61,22 +59,33 @@ const VisaDetails = () => {
       status: "Pending",
     };
 
-    fetch("http://localhost:3000/apply", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(applicationData),
-    })
-      .then((res) => res.json())
-      .then(() => {
-        toast.success("Visa application submitted!");
-        setShowApplyModal(false);
-      })
-      .catch(() => toast.error("Error submitting application"));
+    try {
+      const res = await fetch(`${API_BASE_URL}/apply`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(applicationData),
+      });
+
+      const result = await res.json();
+      if (!res.ok) {
+        throw new Error(result.error || result.message || "Application failed");
+      }
+
+      toast.success("Visa application submitted!");
+      setShowApplyModal(false);
+    } catch (error) {
+      console.error("Apply Error:", error);
+      toast.error(`Failed to apply: ${error.message}`);
+    }
   };
 
+  if (loading)
+    return <p className="text-center text-red-500">Loading visa details...</p>;
+  if (!visa)
+    return <p className="text-center text-red-500">Visa details not found.</p>;
+
   return (
-    <div className="max-w-2xl mx-auto border p-6 shadow-lg rounded-lg">
-      {/* Visa Details */}
+    <div className="max-w-2xl mx-auto border p-6 shadow-lg rounded-lg mt-8">
       {visa.countryImage && (
         <img
           src={visa.countryImage}
@@ -95,21 +104,19 @@ const VisaDetails = () => {
         <strong>Fee:</strong> ${visa.fee}
       </p>
       <p>
-        <strong>Validity:</strong> {visa.validity}
+        <strong>Validity:</strong> {visa.validity} months
       </p>
       <p>
         <strong>Description:</strong> {visa.description}
       </p>
 
-      {/* Apply for Visa Button */}
       <button
         onClick={() => setShowApplyModal(true)}
-        className="mt-4 bg-green-500 text-white px-4 py-2 rounded"
+        className="mt-4 btn bg-white text-blue-500 px-4 py-1 rounded"
       >
         Apply for Visa
       </button>
 
-      {/* Apply Modal */}
       {showApplyModal && (
         <div className="fixed inset-0 flex justify-center items-center bg-black bg-opacity-50">
           <div className="bg-white p-6 rounded-lg shadow-md max-w-lg">
@@ -117,13 +124,6 @@ const VisaDetails = () => {
               Apply for Visa
             </h2>
             <form onSubmit={handleApply} className="space-y-4">
-              <input
-                type="email"
-                name="email"
-                value={user.email}
-                readOnly
-                className="w-full border p-2 rounded"
-              />
               <input
                 type="text"
                 name="firstName"
@@ -136,6 +136,12 @@ const VisaDetails = () => {
                 name="lastName"
                 placeholder="Last Name"
                 required
+                className="w-full border p-2 rounded"
+              />
+              <input
+                type="email"
+                value={user.email}
+                readOnly
                 className="w-full border p-2 rounded"
               />
               <input
