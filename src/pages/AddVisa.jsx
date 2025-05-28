@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import { getAuth, getIdToken } from "firebase/auth";
 
 const AddVisa = () => {
   const { user } = useAuth();
@@ -19,13 +20,11 @@ const AddVisa = () => {
     applicationMethod: "",
   });
 
-  // Handle input change
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({ ...prevData, [name]: value }));
   };
 
-  // Handle checkbox selection
   const handleCheckboxChange = (e) => {
     const { value, checked } = e.target;
     setFormData((prevData) => ({
@@ -36,7 +35,6 @@ const AddVisa = () => {
     }));
   };
 
-  // Submit Visa Data
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.countryImage) {
@@ -45,18 +43,28 @@ const AddVisa = () => {
     }
 
     const newVisa = { ...formData, createdBy: user.email };
+    const auth = getAuth();
+    const token = await getIdToken(auth.currentUser);
 
-    fetch("https://visa-navigator-server-sepia.vercel.app/add-visa", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newVisa),
-    })
-      .then((res) => res.json())
-      .then(() => {
-        toast.success("Visa added successfully!");
-        navigate("/all-visas");
-      })
-      .catch(() => toast.error("Error adding visa"));
+    try {
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL || "http://localhost:3000"}/add-visa`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(newVisa),
+        }
+      );
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to add visa");
+      toast.success("Visa added successfully!");
+      navigate("/all-visas");
+    } catch (error) {
+      toast.error(`Error adding visa: ${error.message}`);
+    }
   };
 
   return (
@@ -65,7 +73,6 @@ const AddVisa = () => {
         Add a New Visa
       </h2>
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Input Fields */}
         {[
           { label: "Country Image URL", name: "countryImage", type: "text" },
           { label: "Country Name", name: "countryName", type: "text" },
@@ -97,7 +104,6 @@ const AddVisa = () => {
           </label>
         ))}
 
-        {/* Visa Type Dropdown */}
         <label className="block">
           <span className="text-lg font-semibold">Visa Type:</span>
           <select
@@ -115,7 +121,6 @@ const AddVisa = () => {
           </select>
         </label>
 
-        {/* Required Documents */}
         <fieldset className="border p-4 rounded-lg">
           <legend className="text-lg font-semibold mb-2">
             Required Documents:
@@ -137,7 +142,6 @@ const AddVisa = () => {
           ))}
         </fieldset>
 
-        {/* Description */}
         <label className="block">
           <span className="text-lg font-semibold">Description:</span>
           <textarea
@@ -148,10 +152,9 @@ const AddVisa = () => {
             className="w-full mt-2 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-400"
             placeholder="Enter a description for the visa"
             rows="4"
-          ></textarea>
+          />
         </label>
 
-        {/* Submit Button */}
         <button
           type="submit"
           className="w-full bg-blue-500 text-white text-lg font-semibold p-4 rounded-lg hover:bg-blue-600 focus:ring-2 focus:ring-blue-400 transition"

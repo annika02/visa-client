@@ -8,9 +8,22 @@ const Home = () => {
   const [latestVisas, setLatestVisas] = useState([]);
 
   useEffect(() => {
-    fetch("https://visa-navigator-server-sepia.vercel.app/latest-visas")
-      .then((res) => res.json())
-      .then((data) => setLatestVisas(data))
+    fetch(`${import.meta.env.VITE_API_URL}/latest-visas`)
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.text(); // Get raw text first
+      })
+      .then((text) => {
+        try {
+          const data = JSON.parse(text);
+          setLatestVisas(data);
+        } catch (error) {
+          console.error("Failed to parse JSON:", text, error);
+          throw new Error("Invalid JSON response");
+        }
+      })
       .catch((error) => console.error("Error fetching visas:", error));
   }, []);
 
@@ -49,9 +62,11 @@ const Home = () => {
       {/* Latest Visas Section */}
       <h2 className="text-3xl font-bold text-center my-6">Latest Visas</h2>
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {latestVisas.map((visa) => (
-          <VisaCard key={visa._id} visa={visa} />
-        ))}
+        {latestVisas.length > 0 ? (
+          latestVisas.map((visa) => <VisaCard key={visa._id} visa={visa} />)
+        ) : (
+          <p className="text-center text-gray-500">Loading visas...</p>
+        )}
       </div>
       <div className="text-center mt-6">
         <Link
@@ -73,7 +88,6 @@ const Home = () => {
         </p>
 
         <div className="max-w-screen-lg mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-12 px-6">
-          {/* Benefit 1 */}
           <div className="bg-white p-8 rounded-lg shadow-lg transition-transform transform hover:scale-105 hover:shadow-2xl">
             <div className="bg-blue-100 text-blue-600 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
               <svg
@@ -99,7 +113,6 @@ const Home = () => {
             </p>
           </div>
 
-          {/* Benefit 2 */}
           <div className="bg-white p-8 rounded-lg shadow-lg transition-transform transform hover:scale-105 hover:shadow-2xl">
             <div className="bg-green-100 text-green-600 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
               <svg
@@ -121,7 +134,6 @@ const Home = () => {
             </p>
           </div>
 
-          {/* Benefit 3 */}
           <div className="bg-white p-8 rounded-lg shadow-lg transition-transform transform hover:scale-105 hover:shadow-2xl">
             <div className="bg-yellow-100 text-yellow-600 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
               <svg
@@ -160,7 +172,6 @@ const Home = () => {
         </p>
 
         <div className="max-w-screen-xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-12 px-6">
-          {/* Feature 1 */}
           <div className="bg-indigo-50 p-8 rounded-lg shadow-md hover:shadow-xl transition-shadow">
             <div className="bg-indigo-600 text-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
               <svg
@@ -182,7 +193,6 @@ const Home = () => {
             </p>
           </div>
 
-          {/* Feature 2 */}
           <div className="bg-green-50 p-8 rounded-lg shadow-md hover:shadow-xl transition-shadow">
             <div className="bg-green-600 text-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
               <svg
@@ -204,7 +214,6 @@ const Home = () => {
             </p>
           </div>
 
-          {/* Feature 3 */}
           <div className="bg-yellow-50 p-8 rounded-lg shadow-md hover:shadow-xl transition-shadow">
             <div className="bg-yellow-600 text-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
               <svg
@@ -230,7 +239,6 @@ const Home = () => {
             </p>
           </div>
 
-          {/* Feature 4 */}
           <div className="bg-blue-50 p-8 rounded-lg shadow-md hover:shadow-xl transition-shadow">
             <div className="bg-blue-600 text-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
               <svg
@@ -252,7 +260,6 @@ const Home = () => {
             </p>
           </div>
 
-          {/* Feature 5 */}
           <div className="bg-red-50 p-8 rounded-lg shadow-md hover:shadow-xl transition-shadow">
             <div className="bg-red-600 text-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
               <svg
@@ -278,7 +285,6 @@ const Home = () => {
             </p>
           </div>
 
-          {/* Feature 6 */}
           <div className="bg-purple-50 p-8 rounded-lg shadow-md hover:shadow-xl transition-shadow">
             <div className="bg-purple-600 text-white rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-6">
               <svg

@@ -9,20 +9,20 @@ const AllVisas = () => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("All");
 
-  // Fetch all visas from the backend
   useEffect(() => {
     const fetchVisas = async () => {
       try {
         const response = await fetch(
-          "https://visa-navigator-server-sepia.vercel.app/all-visas"
+          `${import.meta.env.VITE_API_URL || "http://localhost:3000"}/all-visas`
         );
-        if (!response.ok) throw new Error("Failed to fetch visas");
+        if (!response.ok)
+          throw new Error(`Failed to fetch visas: ${response.statusText}`);
         const data = await response.json();
         setVisas(data);
         setFilteredVisas(data);
       } catch (error) {
         console.error("Error fetching visas:", error);
-        toast.error("Error loading visas. Please try again.");
+        toast.error(`Error loading visas: ${error.message}`);
       } finally {
         setLoading(false);
       }
@@ -30,7 +30,6 @@ const AllVisas = () => {
     fetchVisas();
   }, []);
 
-  // Update filtered visas based on filter
   useEffect(() => {
     if (filter === "All") {
       setFilteredVisas(visas);
@@ -44,8 +43,6 @@ const AllVisas = () => {
   return (
     <div className="container mx-auto px-4">
       <h2 className="text-3xl font-bold text-center my-6">All Visas</h2>
-
-      {/* Filter Dropdown */}
       <div className="text-center mb-6">
         <label htmlFor="visa-filter" className="mr-4 font-bold text-gray-700">
           Filter by Visa Type:
@@ -62,8 +59,6 @@ const AllVisas = () => {
           <option value="Official Visa">Official Visa</option>
         </select>
       </div>
-
-      {/* Visa Cards */}
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredVisas.length > 0 ? (
           filteredVisas.map((visa) => <VisaCard key={visa._id} visa={visa} />)

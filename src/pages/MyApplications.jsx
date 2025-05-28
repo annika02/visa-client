@@ -3,6 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { toast } from "react-toastify";
 import { Fade } from "react-awesome-reveal";
+import { getAuth, getIdToken } from "firebase/auth";
 
 const MyApplications = () => {
   const { user } = useAuth();
@@ -12,35 +13,61 @@ const MyApplications = () => {
 
   useEffect(() => {
     if (user) {
-      fetch(
-        `https://visa-navigator-server-sepia.vercel.app/applications/${user.email}`
-      )
-        .then((res) => res.json())
-        .then((data) => {
+      const fetchApplications = async () => {
+        try {
+          const auth = getAuth();
+          const token = await getIdToken(auth.currentUser);
+          const res = await fetch(
+            `${
+              import.meta.env.VITE_API_URL || "http://localhost:3000"
+            }/applications/${user.email}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+          const data = await res.json();
+          if (!res.ok)
+            throw new Error(data.error || "Failed to fetch applications");
           setApplications(Array.isArray(data) ? data : []);
           setLoading(false);
-        })
-        .catch((error) => {
+        } catch (error) {
           console.error("Error fetching applications:", error);
+          toast.error(`Error fetching applications: ${error.message}`);
           setApplications([]);
           setLoading(false);
-        });
+        }
+      };
+      fetchApplications();
     }
   }, [user]);
-  const handleCancel = (id) => {
-    fetch(`https://visa-navigator-server-sepia.vercel.app/application/${id}`, {
-      method: "DELETE",
-    })
-      .then((res) => res.json())
-      .then(() => {
-        toast.success("Application cancelled!");
-        // Instantly update the UI by filtering out the canceled application
-        setApplications((prev) => prev.filter((app) => app._id !== id));
-      })
-      .catch(() => toast.error("Error cancelling application"));
+
+  const handleCancel = async (id) => {
+    try {
+      const auth = getAuth();
+      const token = await getIdToken(auth.currentUser);
+      const res = await fetch(
+        `${
+          import.meta.env.VITE_API_URL || "http://localhost:3000"
+        }/application/${id}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const data = await res.json();
+      if (!res.ok)
+        throw new Error(data.error || "Failed to cancel application");
+      toast.success("Application cancelled!");
+      setApplications((prev) => prev.filter((app) => app._id !== id));
+    } catch (error) {
+      toast.error(`Error cancelling application: ${error.message}`);
+    }
   };
 
-  // Search Filter
   const filteredApplications = applications.filter((app) =>
     app?.countryName?.toLowerCase()?.includes(searchTerm.toLowerCase())
   );
@@ -55,7 +82,6 @@ const MyApplications = () => {
         </h2>
       </Fade>
 
-      {/* Search Bar */}
       <Fade>
         <div className="text-center mb-4">
           <input

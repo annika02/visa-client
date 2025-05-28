@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { toast } from "react-toastify";
+import { getAuth, getIdToken } from "firebase/auth";
 
 const MyVisas = () => {
   const { user } = useAuth();
@@ -18,73 +19,97 @@ const MyVisas = () => {
     countryImage: "",
   });
 
-  // Fetch user's visas from the backend
   useEffect(() => {
     if (user) {
-      fetch(
-        `https://visa-navigator-server-sepia.vercel.app/my-visas/${user.email}`
-      )
-        .then((res) => res.json())
-        .then((data) => {
+      const fetchVisas = async () => {
+        try {
+          const auth = getAuth();
+          const token = await getIdToken(auth.currentUser);
+          const res = await fetch(
+            `${
+              import.meta.env.VITE_API_URL || "http://localhost:3000"
+            }/my-visas/${user.email}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Failed to fetch visas");
           setVisas(data);
           setLoading(false);
-        })
-        .catch((error) => {
+        } catch (error) {
           console.error("Error fetching visas:", error);
-          toast.error("Failed to fetch visas.");
+          toast.error(`Failed to fetch visas: ${error.message}`);
           setLoading(false);
-        });
+        }
+      };
+      fetchVisas();
     }
   }, [user]);
 
-  // Handle deleting a visa
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this visa?")) return;
 
     try {
+      const auth = getAuth();
+      const token = await getIdToken(auth.currentUser);
       const res = await fetch(
-        `https://visa-navigator-server-sepia.vercel.app/visa/${id}`,
+        `${import.meta.env.VITE_API_URL || "http://localhost:3000"}/visa/${id}`,
         {
           method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
-      if (!res.ok) throw new Error("Failed to delete visa");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to delete visa");
       toast.success("Visa deleted successfully!");
       setVisas(visas.filter((visa) => visa._id !== id));
     } catch (error) {
-      toast.error("Error deleting visa.");
+      toast.error(`Error deleting visa: ${error.message}`);
     }
   };
 
-  // Handle edit button click
   const handleEditClick = (visa) => {
     setEditingVisa(visa._id);
     setFormData({ ...visa });
   };
 
-  // Handle input changes
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // Handle updating visa
   const handleUpdate = async () => {
     try {
+      const auth = getAuth();
+      const token = await getIdToken(auth.currentUser);
       const res = await fetch(
-        `https://visa-navigator-server-sepia.vercel.app/visa/${editingVisa}`,
+        `${
+          import.meta.env.VITE_API_URL || "http://localhost:3000"
+        }/visa/${editingVisa}`,
         {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
           body: JSON.stringify(formData),
         }
       );
-      if (!res.ok) throw new Error("Failed to update visa");
-
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to update visa");
       toast.success("Visa updated successfully!");
-      setVisas(visas.map((v) => (v._id === editingVisa ? formData : v)));
+      setVisas(
+        visas.map((v) =>
+          v._id === editingVisa ? { ...formData, _id: v._id } : v
+        )
+      );
       setEditingVisa(null);
     } catch (error) {
-      toast.error("Error updating visa.");
+      toast.error(`Error updating visa: ${error.message}`);
     }
   };
 
@@ -93,7 +118,6 @@ const MyVisas = () => {
   return (
     <div className="container mx-auto">
       <h2 className="text-3xl font-bold text-center my-6">My Added Visas</h2>
-
       {visas.length === 0 ? (
         <p className="text-center text-gray-500">No visas added yet.</p>
       ) : (
@@ -185,7 +209,6 @@ const MyVisas = () => {
                   <p className="text-sm text-gray-600">
                     Application Method: {visa.applicationMethod}
                   </p>
-
                   <div className="flex gap-3 mt-4">
                     <button
                       onClick={() => handleEditClick(visa)}
