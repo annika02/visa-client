@@ -22,9 +22,7 @@ const VisaDetails = () => {
     const fetchVisa = async () => {
       try {
         const res = await fetch(
-          `${
-            import.meta.env.VITE_API_URL || "http://localhost:3000"
-          }/visa/${id}`
+          `${import.meta.env.VITE_API_URL}/visas/${id}` // Changed from /visa/:id to /visas/:id
         );
         if (!res.ok) {
           throw new Error(`Failed to load visa details: ${res.statusText}`);
@@ -60,7 +58,7 @@ const VisaDetails = () => {
 
     try {
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL || "http://localhost:3000"}/apply`,
+        `${import.meta.env.VITE_API_URL}/applications`, // Changed from /apply to /applications
         {
           method: "POST",
           headers: {

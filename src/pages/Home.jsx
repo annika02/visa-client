@@ -8,21 +8,19 @@ const Home = () => {
   const [latestVisas, setLatestVisas] = useState([]);
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/latest-visas`)
+    fetch(`${import.meta.env.VITE_API_URL}/visas`) // Changed from /latest-visas to /visas
       .then((res) => {
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`);
         }
-        return res.text(); // Get raw text first
+        return res.json(); // Parse JSON directly
       })
-      .then((text) => {
-        try {
-          const data = JSON.parse(text);
-          setLatestVisas(data);
-        } catch (error) {
-          console.error("Failed to parse JSON:", text, error);
-          throw new Error("Invalid JSON response");
-        }
+      .then((data) => {
+        // Sort by createdAt (assuming visas have a createdAt field) and take the latest 6
+        const sortedVisas = data
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          .slice(0, 6);
+        setLatestVisas(sortedVisas);
       })
       .catch((error) => console.error("Error fetching visas:", error));
   }, []);

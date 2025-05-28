@@ -26,9 +26,7 @@ const MyVisas = () => {
           const auth = getAuth();
           const token = await getIdToken(auth.currentUser);
           const res = await fetch(
-            `${
-              import.meta.env.VITE_API_URL || "http://localhost:3000"
-            }/my-visas/${user.email}`,
+            `${import.meta.env.VITE_API_URL}/visas`, // Changed from /my-visas/:email to /visas
             {
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -37,7 +35,11 @@ const MyVisas = () => {
           );
           const data = await res.json();
           if (!res.ok) throw new Error(data.error || "Failed to fetch visas");
-          setVisas(data);
+          // Filter visas by user's email client-side
+          const userVisas = data.filter(
+            (visa) => visa.createdBy === user.email
+          );
+          setVisas(userVisas);
           setLoading(false);
         } catch (error) {
           console.error("Error fetching visas:", error);
@@ -56,7 +58,7 @@ const MyVisas = () => {
       const auth = getAuth();
       const token = await getIdToken(auth.currentUser);
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL || "http://localhost:3000"}/visa/${id}`,
+        `${import.meta.env.VITE_API_URL}/visas/${id}`, // Matches backend
         {
           method: "DELETE",
           headers: {
@@ -87,11 +89,9 @@ const MyVisas = () => {
       const auth = getAuth();
       const token = await getIdToken(auth.currentUser);
       const res = await fetch(
-        `${
-          import.meta.env.VITE_API_URL || "http://localhost:3000"
-        }/visa/${editingVisa}`,
+        `${import.meta.env.VITE_API_URL}/visas/${editingVisa}`, // Matches backend but change method to PUT
         {
-          method: "PATCH",
+          method: "PUT", // Changed from PATCH to PUT to match backend
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,

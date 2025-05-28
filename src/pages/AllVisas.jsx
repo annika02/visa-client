@@ -8,16 +8,22 @@ const AllVisas = () => {
   const [filteredVisas, setFilteredVisas] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("All");
-
   useEffect(() => {
     const fetchVisas = async () => {
       try {
-        const response = await fetch(
-          `${import.meta.env.VITE_API_URL || "http://localhost:3000"}/all-visas`
-        );
-        if (!response.ok)
-          throw new Error(`Failed to fetch visas: ${response.statusText}`);
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/visas`);
+
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+          const text = await response.text();
+          throw new Error(`Expected JSON, got: ${text}`);
+        }
+
         const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data?.error || "Failed to fetch visas");
+        }
+
         setVisas(data);
         setFilteredVisas(data);
       } catch (error) {
@@ -27,6 +33,7 @@ const AllVisas = () => {
         setLoading(false);
       }
     };
+
     fetchVisas();
   }, []);
 

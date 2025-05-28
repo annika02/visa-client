@@ -48,7 +48,7 @@ const AddVisa = () => {
 
     try {
       const res = await fetch(
-        `${import.meta.env.VITE_API_URL || "http://localhost:3000"}/add-visa`,
+        `${import.meta.env.VITE_API_URL}/visas`, // Changed from /add-visa to /visas
         {
           method: "POST",
           headers: {

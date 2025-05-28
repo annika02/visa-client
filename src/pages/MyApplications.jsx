@@ -18,9 +18,7 @@ const MyApplications = () => {
           const auth = getAuth();
           const token = await getIdToken(auth.currentUser);
           const res = await fetch(
-            `${
-              import.meta.env.VITE_API_URL || "http://localhost:3000"
-            }/applications/${user.email}`,
+            `${import.meta.env.VITE_API_URL}/applications`, // Changed from /applications/:email to /applications
             {
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -30,7 +28,11 @@ const MyApplications = () => {
           const data = await res.json();
           if (!res.ok)
             throw new Error(data.error || "Failed to fetch applications");
-          setApplications(Array.isArray(data) ? data : []);
+          // Filter applications by user's email client-side
+          const userApplications = Array.isArray(data)
+            ? data.filter((app) => app.email === user.email)
+            : [];
+          setApplications(userApplications);
           setLoading(false);
         } catch (error) {
           console.error("Error fetching applications:", error);
@@ -48,9 +50,7 @@ const MyApplications = () => {
       const auth = getAuth();
       const token = await getIdToken(auth.currentUser);
       const res = await fetch(
-        `${
-          import.meta.env.VITE_API_URL || "http://localhost:3000"
-        }/application/${id}`,
+        `${import.meta.env.VITE_API_URL}/applications/${id}`, // Changed from /application/:id to /applications/:id
         {
           method: "DELETE",
           headers: {
