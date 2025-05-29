@@ -54,7 +54,7 @@ Navigate to the backend directory (e.g., server/):cd server
 Install dependencies:npm install
 
 
-Create a .env file in the backend directory:PORT=5000
+Create a .env file in the backend directory:PORT=3000
 DB_USER=your_mongodb_username
 DB_PASS=your_mongodb_password
 
@@ -64,7 +64,7 @@ Replace your_mongodb_username and your_mongodb_password with your MongoDB Atlas 
 
 Start the backend server:npm start
 
-The backend will run at http://localhost:5000.
+The backend will run at http://localhost:3000.
 
 3. Frontend Setup
 
@@ -74,7 +74,7 @@ Navigate to the frontend directory (e.g., client/):cd client
 Install dependencies:npm install
 
 
-Create a .env file in the frontend directory:VITE_API_URL=http://localhost:5000
+Create a .env file in the frontend directory:VITE_API_URL=http://localhost:3000
 VITE_FIREBASE_API_KEY=your_firebase_api_key
 VITE_FIREBASE_AUTH_DOMAIN=your_firebase_auth_domain
 VITE_FIREBASE_PROJECT_ID=your_firebase_project_id
