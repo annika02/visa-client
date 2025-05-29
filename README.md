@@ -9,10 +9,10 @@ Visa Navigator is a modern web application that helps users manage visa-related 
 
 ---
 
-## 🔗 Live Site
+## 🌐 Live Site
 
-👉 [https://assignment10-c1fcc.web.app](https://assignment10-c1fcc.web.app)
-
+🔗 Live Link: [https://assignment10-c1fcc.web.app](https://assignment10-c1fcc.web.app)
+🔗 Backend API: [https://visa-navigator-six.vercel.app/]
 ---
 
 ## ✨ Features
